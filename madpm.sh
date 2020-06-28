@@ -17,7 +17,7 @@ depart(){
 }
 
 resolve_dependencies () {
-    DEPFILE=$HOME/madpkgs/$1
+    DEPFILE=$HOME/.madpkgs/$1
     if [ -f $DEPFILE ]; then
         while read line; do
             depart $line
@@ -29,8 +29,8 @@ resolve_dependencies () {
 
 FILE=deps.txt
 if [ -f $FILE ]; then
-    if [ ! -d "$HOME/madpkgs" ]; then
-        echo "Seems like madpkgs doesn't exists on your machine. Please download it from here: https://www.github.com/linarcx/madpkgs"
+    if [ ! -d "$HOME/.madpkgs" ]; then
+        echo "Seems madpkgs doesn't exists on your machine. Please grab it from here: https://github.com/MinimalAndroidDevelopment/madpkgs"
         exit
     fi
     while read line; do
@@ -43,7 +43,6 @@ fi
 #echo $line
 #echo $1
 #mkdir -p $HOME/madpkgs;
-
 #[ "${1%${1#?}}"x = 'sourcex' ] && echo yes
 #[ "${1#\#}"x != "${1}x" ] && echo yes
 #if [ $1 = source* ]; then
