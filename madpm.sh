@@ -2,31 +2,6 @@
 
 SECTION=1
 
-depart(){
-    LINK=""
-    case $1 in
-        source=*)
-            LINK=$(echo $1 | cut -d "=" -f 2)
-            PKGNAME=$(echo $LINK | rev | cut -d "/" -f1 | rev)
-            PKGDIR=$(echo $PKGNAME | rev | cut -c 5- | rev)
-
-            echo "Downloading: [$LINK]"
-
-            wget -P $HOME/.pkgs $LINK
-            unzip $HOME/.pkgs/$PKGNAME -d $HOME/.pkgs/$PKGDIR
-            cp $HOME/.pkgs/$PKGDIR/classes.jar $HOME/.pkgs
-            mv $HOME/.pkgs/classes.jar $HOME/.pkgs/$PKGDIR.jar
-            ln -s $HOME/.pkgs/$PKGDIR.jar libs/
-            ;;
-        depends=*)
-            #echo "depends"
-            ;;
-        *)
-            #echo "remain same item"
-            ;;
-    esac
-}
-
 resolve_dependencies () {
     DEPFILE=$HOME/.madpkgs/$1
     if [ -f $DEPFILE ]; then
@@ -34,8 +9,67 @@ resolve_dependencies () {
             depart $line
         done < $DEPFILE
     else
-        echo "There's no such a package in madpkgs!"
+        echo "$1 not found in madpkgs!"
     fi
+}
+
+split() {
+    # Disable globbing.
+    # This ensures that the word-splitting is safe.
+    set -f
+
+    # Store the current value of 'IFS' so we
+    # can restore it later.
+    old_ifs=$IFS
+
+    # Change the field separator to what we're
+    # splitting on.
+    IFS=$2
+
+    # Create an argument list splitting at each
+    # occurance of '$2'.
+    #
+    # This is safe to disable as it just warns against
+    # word-splitting which is the behavior we expect.
+    # shellcheck disable=2086
+    set -- $1
+
+    # Print each list value on its own line.
+    resolve_dependencies $@
+    #printf '%s\n' "$@"
+
+    # Restore the value of 'IFS'.
+    IFS=$old_ifs
+
+    # Re-enable globbing.
+    set +f
+}
+
+depart(){
+    LINK=""
+    case $1 in
+        source=*)
+            LINK=$(echo $1 | cut -d "=" -f 2)
+            #PKGNAME=$(echo $LINK | rev | cut -d "/" -f1 | rev)
+            #PKGDIR=$(echo $PKGNAME | rev | cut -c 5- | rev)
+
+            #echo "Downloading: [$LINK]"
+
+            #wget -P $HOME/.pkgs $LINK
+            #unzip $HOME/.pkgs/$PKGNAME -d $HOME/.pkgs/$PKGDIR
+            #cp $HOME/.pkgs/$PKGDIR/classes.jar $HOME/.pkgs
+            #mv $HOME/.pkgs/classes.jar $HOME/.pkgs/$PKGDIR.jar
+            #ln -s $HOME/.pkgs/$PKGDIR.jar libs/
+            ;;
+        depends=*)
+            DEPS=$(echo $1 | cut -d "=" -f 2)
+            split $DEPS ";"
+            #echo $DEPS
+            ;;
+        *)
+            #echo "remain same item"
+            ;;
+    esac
 }
 
 FILE=deps.txt
@@ -53,19 +87,3 @@ if [ -f $FILE ]; then
 else
     echo "There's no $FILE at the root of your project. Please add it!"
 fi
-
-#echo $line
-#echo $1
-#[ "${1%${1#?}}"x = 'sourcex' ] && echo yes
-#[ "${1#\#}"x != "${1}x" ] && echo yes
-#if [ $1 = source* ]; then
-#    echo "hi"
-#fi
-#curl $LINK --output /home/linarcx/.madpkgs/
-#PUREPKGNAME=$(echo ${PKGNAME::-4})
-
-#remove_chars(){
-#    var=$1
-#    size=${#var}
-#    echo ${var:0:size-4}
-#}
